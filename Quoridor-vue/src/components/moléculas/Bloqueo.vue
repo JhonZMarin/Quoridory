@@ -1,8 +1,8 @@
 <template>
-  <div 
+  <div
     :class="['bloqueo', direccion, jugadorClase]"
+    :style="{ top: (fila * 44) + 'px', left: (columna * 44) + 'px', width: (direccion === 'horizontal' ? '80px' : '10px'), height: (direccion === 'vertical' ? '80px' : '10px') }"
     @click="manejarClic"
-    tabindex="0"
   ></div>
 </template>
 
@@ -25,18 +25,8 @@ export default {
 <style scoped>
 .bloqueo {
   position: absolute;
-  width: 40px; /* Ajustar según el tamaño del tablero */
-  height: 10px; /* Ajustar según el tamaño del tablero */
   background-color: gray;
   cursor: pointer;
-}
-.horizontal {
-  width: 80px;
-  height: 10px;
-}
-.vertical {
-  width: 10px;
-  height: 80px;
 }
 .jugador1 {
   background-color: blue;

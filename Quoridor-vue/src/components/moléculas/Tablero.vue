@@ -1,9 +1,5 @@
 <template>
-  <div 
-    id="tablero" 
-    class="tablero"
-    @mousemove="actualizarPosicionBloqueo"
-  >
+  <div id="tablero" class="tablero">
     <!-- Renderizar las casillas del tablero -->
     <div 
       v-for="(casilla, index) in casillas"
@@ -12,14 +8,14 @@
       @click="manejadorClic(casilla.fila, casilla.columna)"
     ></div>
 
-    <!-- Resaltar la posición del bloque al pasar el mouse sobre el tablero -->
+    <!-- Renderizar los bloques en el tablero -->
     <Bloqueo
-      v-if="posicionBloqueo"
-      :fila="posicionBloqueo.fila"
-      :columna="posicionBloqueo.columna"
-      :direccion="direccionBloqueo"
-      :jugadorClase="`jugador${turnoActual}`"
-      @click="colocarBloqueo"
+      v-for="(bloqueo, index) in bloqueos"
+      :key="index"
+      :fila="bloqueo.fila"
+      :columna="bloqueo.columna"
+      :direccion="bloqueo.direccion"
+      :jugadorClase="bloqueo.jugadorClase"
     />
   </div>
 </template>
@@ -28,51 +24,30 @@
 import Bloqueo from '../moléculas/Bloqueo.vue';
 
 export default {
+  components: {
+    Bloqueo,
+  },
   props: {
     casillas: Array,
-    turnoActual: Number
-  },
-  data() {
-    return {
-      posicionBloqueo: null,
-      direccionBloqueo: 'horizontal' // Dirección predeterminada del bloqueo
-    };
+    bloqueos: Array
   },
   methods: {
     manejadorClic(fila, columna) {
       this.$emit('moverJugador', fila, columna);
-    },
-    actualizarPosicionBloqueo(event) {
-      // Calcular la fila y columna del bloque según la posición del mouse
-      const rect = event.target.getBoundingClientRect();
-      const offsetX = event.clientX - rect.left;
-      const offsetY = event.clientY - rect.top;
-      const fila = Math.floor(offsetY / 44); // Calcular fila
-      const columna = Math.floor(offsetX / 44); // Calcular columna
-
-      // Actualizar la posición del bloque
-      this.posicionBloqueo = { fila, columna };
-    },
-    colocarBloqueo(fila, columna, direccion) {
-      // Emitir un evento con la posición y dirección del bloqueo
-      this.$emit('colocarBloqueo', fila, columna, direccion);
     }
-  },
-  components: {
-    Bloqueo
   }
 };
 </script>
 
 <style scoped>
 .tablero {
-  position: relative;
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   grid-template-rows: repeat(9, 1fr);
   width: 400px;
   height: 400px;
   border: 1px solid black;
+  position: relative;
 }
 .casilla {
   border: 1px solid black;
