@@ -60,49 +60,54 @@ export default {
       this.turnoActual = this.turnoActual === 1 ? 2 : 1;
     },
     moverJugador(fila, columna) {
-      const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
-      const posicionActual = this.posiciones[jugador];
+  const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
+  const posicionActual = this.posiciones[jugador];
+  const casillaDestino = this.casillas[fila * 9 + columna];
 
-      if (this.esMovimientoValido(posicionActual, { fila, columna })) {
-        this.casillas[posicionActual.fila * 9 + posicionActual.columna].jugadorClase = '';
-        this.casillas[fila * 9 + columna].jugadorClase = jugador;
-        this.posiciones[jugador] = { fila, columna };
+  // Verificamos si la casilla de destino está vacía
+  if (!casillaDestino.jugadorClase && this.esMovimientoValido(posicionActual, { fila, columna })) {
+    this.casillas[posicionActual.fila * 9 + posicionActual.columna].jugadorClase = '';
+    this.casillas[fila * 9 + columna].jugadorClase = jugador;
+    this.posiciones[jugador] = { fila, columna };
 
-        if (this.verificarGanador(fila)) {
-          this.mostrarGanador = true;
-          this.mensajeGanador = `¡Jugador ${this.turnoActual} ha ganado!`;
-        } else {
-          this.actualizarTurno();
-        }
-      }
-    },
+    if (this.verificarGanador(fila)) {
+      this.mostrarGanador = true;
+      this.mensajeGanador = `¡Jugador ${this.turnoActual} ha ganado!`;
+    } else {
+      this.actualizarTurno();
+    }
+  }
+},
     esMovimientoValido(posActual, nuevaPos) {
       const distFila = Math.abs(nuevaPos.fila - posActual.fila);
       const distColumna = Math.abs(nuevaPos.columna - posActual.columna);
-      const esMovimientoBasicoValido = (distFila === 1 && distColumna === 0) || (distFila === 0 && distColumna === 1);
+  const esMovimientoBasicoValido = (distFila === 1 && distColumna === 0) || (distFila === 0 && distColumna === 1);
 
-      if (!esMovimientoBasicoValido) return false;
+  if (!esMovimientoBasicoValido) return false;
 
-      for (const bloqueo of this.bloqueos) {
-        if (bloqueo.direccion === 'horizontal') {
-          if ((posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila + 1) || 
-              (posActual.fila === bloqueo.fila + 1 && nuevaPos.fila === bloqueo.fila)) {
-            if (posActual.columna === bloqueo.columna || posActual.columna === bloqueo.columna + 1) {
-              return false;
-            }
-          }
-        } else if (bloqueo.direccion === 'vertical') {
-          if ((posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna + 1) || 
-              (posActual.columna === bloqueo.columna + 1 && nuevaPos.columna === bloqueo.columna)) {
-            if (posActual.fila === bloqueo.fila || posActual.fila === bloqueo.fila + 1) {
-              return false;
-            }
-          }
-        }
-      }
+  // Verificar si la casilla de destino está vacía y no está ocupada por otro jugador
+  const casillaDestino = this.casillas[nuevaPos.fila * 9 + nuevaPos.columna];
+  if (casillaDestino.jugadorClase) return false;
 
-      return true;
-    },
+  // Verificar si hay bloqueo en la casilla de destino
+  for (const bloqueo of this.bloqueos) {
+    if (
+      (bloqueo.direccion === 'horizontal' &&
+        ((posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila + 1) ||
+          (posActual.fila === bloqueo.fila + 1 && nuevaPos.fila === bloqueo.fila)) &&
+        (posActual.columna === bloqueo.columna || posActual.columna === bloqueo.columna + 1)) ||
+      (bloqueo.direccion === 'vertical' &&
+        ((posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna + 1) ||
+          (posActual.columna === bloqueo.columna + 1 && nuevaPos.columna === bloqueo.columna)) &&
+        (posActual.fila === bloqueo.fila || posActual.fila === bloqueo.fila + 1))
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+},
+
     verificarGanador(fila) {
       return (this.turnoActual === 1 && fila === 8) || (this.turnoActual === 2 && fila === 0);
     },
