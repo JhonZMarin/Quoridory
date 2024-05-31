@@ -1,63 +1,88 @@
 <template>
-  <div id="tablero" class="tablero">
-    <!-- Renderizar las casillas del tablero -->
+  <div class="tablero">
     <div 
-      v-for="(casilla, index) in casillas"
-      :key="index"
+      v-for="casilla in casillas" 
+      :key="`${casilla.fila}-${casilla.columna}`" 
       :class="['casilla', casilla.jugadorClase]"
-      @click="manejadorClic(casilla.fila, casilla.columna)"
-    ></div>
-
-    <!-- Renderizar los bloques en el tablero -->
-    <Bloqueo
-      v-for="(bloqueo, index) in bloqueos"
-      :key="index"
-      :fila="bloqueo.fila"
-      :columna="bloqueo.columna"
-      :direccion="bloqueo.direccion"
-      :jugadorClase="bloqueo.jugadorClase"
-    />
+      @click="manejarClickCasilla(casilla.fila, casilla.columna)">
+    </div>
+    <div 
+      v-for="bloqueo in bloqueos" 
+      :key="`${bloqueo.fila}-${bloqueo.columna}-${bloqueo.direccion}`" 
+      :class="['bloqueo', bloqueo.direccion]"
+      :style="obtenerEstiloBloqueo(bloqueo)">
+    </div>
   </div>
 </template>
 
 <script>
-import Bloqueo from '../moléculas/Bloqueo.vue';
-
 export default {
-  components: {
-    Bloqueo,
-  },
   props: {
     casillas: Array,
     bloqueos: Array
   },
   methods: {
-    manejadorClic(fila, columna) {
+    manejarClickCasilla(fila, columna) {
       this.$emit('moverJugador', fila, columna);
+    },
+    obtenerEstiloBloqueo(bloqueo) {
+      if (bloqueo.direccion === 'horizontal') {
+        return {
+          top: `${bloqueo.fila * 50 + 45}px`,
+          left: `${bloqueo.columna * 50}px`,
+          width: '100px',
+          height: '5px',
+          backgroundColor: 'blue'
+        };
+      } else if (bloqueo.direccion === 'vertical') {
+        return {
+          top: `${bloqueo.fila * 50}px`,
+          left: `${bloqueo.columna * 50 + 45}px`,
+          width: '5px',
+          height: '100px',
+          backgroundColor: 'blue'
+        };
+      }
     }
   }
-};
+}
 </script>
 
-<style scoped>
+<style>
 .tablero {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  grid-template-rows: repeat(9, 1fr);
-  width: 90vmin;
-  height: 90vmin;
-  max-width: 400px;
-  max-height: 400px;
-  border: 1px solid black;
   position: relative;
+  width: 450px;
+  height: 450px;
+  display: grid;
+  grid-template-columns: repeat(9, 50px);
+  grid-template-rows: repeat(9, 50px);
 }
+
 .casilla {
+  width: 50px;
+  height: 50px;
   border: 1px solid black;
 }
+
 .jugador1 {
-  background-color: rgb(116, 178, 230);
+  background-color: red;
 }
+
 .jugador2 {
-  background-color: rgb(226, 44, 83);
+  background-color: green;
+}
+
+.bloqueo {
+  position: absolute;
+}
+
+.bloqueo.horizontal {
+  height: 5px;
+  background-color: blue;
+}
+
+.bloqueo.vertical {
+  width: 5px;
+  background-color: blue;
 }
 </style>

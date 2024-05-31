@@ -2,7 +2,12 @@
   <div id="app">
     <div class="content">
       <IndicadorTurno :turnoActual="turnoActual" />
-      <Tablero :casillas="casillas" :bloqueos="bloqueos" @moverJugador="moverJugador" @colocarBloqueo="colocarBloqueo" />
+      <Tablero 
+        :casillas="casillas" 
+        :bloqueos="bloqueos" 
+        @moverJugador="moverJugador" 
+        @colocarBloqueo="colocarBloqueo" 
+      />
       <MensajeGanador :mostrar="mostrarGanador" :mensaje="mensajeGanador" />
       <div class="botones-bloqueo">
         <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 1">Bloquear J1</button>
@@ -25,7 +30,7 @@ export default {
   },
   data() {
     return {
-      turnoActual: 1, // 1 para Jugador 1, 2 para Jugador 2
+      turnoActual: 1,
       mostrarGanador: false,
       mensajeGanador: '',
       casillas: this.crearCasillas(),
@@ -47,9 +52,8 @@ export default {
           casillas.push({ fila: i, columna: j, jugadorClase: '' });
         }
       }
-      // Posiciones iniciales de los jugadores
-      casillas[0 * 9 + 4].jugadorClase = 'jugador1'; // Centro superior
-      casillas[8 * 9 + 4].jugadorClase = 'jugador2'; // Centro inferior
+      casillas[0 * 9 + 4].jugadorClase = 'jugador1';
+      casillas[8 * 9 + 4].jugadorClase = 'jugador2';
       return casillas;
     },
     actualizarTurno() {
@@ -60,19 +64,14 @@ export default {
       const posicionActual = this.posiciones[jugador];
 
       if (this.esMovimientoValido(posicionActual, { fila, columna })) {
-        // Actualizar casillas
         this.casillas[posicionActual.fila * 9 + posicionActual.columna].jugadorClase = '';
         this.casillas[fila * 9 + columna].jugadorClase = jugador;
-
-        // Actualizar posición del jugador
         this.posiciones[jugador] = { fila, columna };
 
-        // Verificar si hay ganador
         if (this.verificarGanador(fila)) {
           this.mostrarGanador = true;
           this.mensajeGanador = `¡Jugador ${this.turnoActual} ha ganado!`;
         } else {
-          // Actualizar el turno
           this.actualizarTurno();
         }
       }
@@ -84,19 +83,20 @@ export default {
 
       if (!esMovimientoBasicoValido) return false;
 
-      // Verificar si hay un bloqueo entre la posición actual y la nueva posición
       for (const bloqueo of this.bloqueos) {
         if (bloqueo.direccion === 'horizontal') {
-          if (posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila && 
-              ((posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna + 1) || 
-               (posActual.columna === bloqueo.columna + 1 && nuevaPos.columna === bloqueo.columna))) {
-            return false;
+          if ((posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila + 1) || 
+              (posActual.fila === bloqueo.fila + 1 && nuevaPos.fila === bloqueo.fila)) {
+            if (posActual.columna === bloqueo.columna || posActual.columna === bloqueo.columna + 1) {
+              return false;
+            }
           }
         } else if (bloqueo.direccion === 'vertical') {
-          if (posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna && 
-              ((posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila + 1) || 
-               (posActual.fila === bloqueo.fila + 1 && nuevaPos.fila === bloqueo.fila))) {
-            return false;
+          if ((posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna + 1) || 
+              (posActual.columna === bloqueo.columna + 1 && nuevaPos.columna === bloqueo.columna)) {
+            if (posActual.fila === bloqueo.fila || posActual.fila === bloqueo.fila + 1) {
+              return false;
+            }
           }
         }
       }
@@ -134,12 +134,13 @@ export default {
       }
     },
     colocarBloqueo(fila, columna, direccion) {
-      const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
-      if (this.modoBloqueo) {
-        this.bloqueos.push({ fila, columna, direccion, jugadorClase: jugador });
-        this.modoBloqueo = false;
-        this.actualizarTurno();
+      if (direccion === 'horizontal' && fila < 8) {
+        this.bloqueos.push({ fila, columna, direccion });
+      } else if (direccion === 'vertical' && columna < 8) {
+        this.bloqueos.push({ fila, columna, direccion });
       }
+      this.modoBloqueo = false;
+      this.actualizarTurno();
     },
     activarModoBloqueo() {
       this.modoBloqueo = true;
