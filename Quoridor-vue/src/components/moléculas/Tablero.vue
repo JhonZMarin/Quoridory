@@ -44,8 +44,10 @@ export default {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   grid-template-rows: repeat(9, 1fr);
-  width: 400px;
-  height: 400px;
+  width: 90vmin;
+  height: 90vmin;
+  max-width: 400px;
+  max-height: 400px;
   border: 1px solid black;
   position: relative;
 }

@@ -1,11 +1,13 @@
 <template>
   <div id="app">
-    <IndicadorTurno :turnoActual="turnoActual" />
-    <Tablero :casillas="casillas" :bloqueos="bloqueos" @moverJugador="moverJugador" @colocarBloqueo="colocarBloqueo" />
-    <MensajeGanador :mostrar="mostrarGanador" :mensaje="mensajeGanador" />
-    <div class="botones-bloqueo">
-      <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 1">Bloquear J1</button>
-      <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 2">Bloquear J2</button>
+    <div class="content">
+      <IndicadorTurno :turnoActual="turnoActual" />
+      <Tablero :casillas="casillas" :bloqueos="bloqueos" @moverJugador="moverJugador" @colocarBloqueo="colocarBloqueo" />
+      <MensajeGanador :mostrar="mostrarGanador" :mensaje="mensajeGanador" />
+      <div class="botones-bloqueo">
+        <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 1">Bloquear J1</button>
+        <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 2">Bloquear J2</button>
+      </div>
     </div>
   </div>
 </template>
@@ -78,38 +80,59 @@ export default {
     esMovimientoValido(posActual, nuevaPos) {
       const distFila = Math.abs(nuevaPos.fila - posActual.fila);
       const distColumna = Math.abs(nuevaPos.columna - posActual.columna);
-      return (distFila === 1 && distColumna === 0) || (distFila === 0 && distColumna === 1);
+      const esMovimientoBasicoValido = (distFila === 1 && distColumna === 0) || (distFila === 0 && distColumna === 1);
+
+      if (!esMovimientoBasicoValido) return false;
+
+      // Verificar si hay un bloqueo entre la posición actual y la nueva posición
+      for (const bloqueo of this.bloqueos) {
+        if (bloqueo.direccion === 'horizontal') {
+          if (posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila && 
+              ((posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna + 1) || 
+               (posActual.columna === bloqueo.columna + 1 && nuevaPos.columna === bloqueo.columna))) {
+            return false;
+          }
+        } else if (bloqueo.direccion === 'vertical') {
+          if (posActual.columna === bloqueo.columna && nuevaPos.columna === bloqueo.columna && 
+              ((posActual.fila === bloqueo.fila && nuevaPos.fila === bloqueo.fila + 1) || 
+               (posActual.fila === bloqueo.fila + 1 && nuevaPos.fila === bloqueo.fila))) {
+            return false;
+          }
+        }
+      }
+
+      return true;
     },
     verificarGanador(fila) {
       return (this.turnoActual === 1 && fila === 8) || (this.turnoActual === 2 && fila === 0);
     },
     manejarTecla(event) {
-  const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
-  const posicionActual = this.posiciones[jugador];
-  let nuevaFila = posicionActual.fila;
-  let nuevaColumna = posicionActual.columna;
+      const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
+      const posicionActual = this.posiciones[jugador];
+      let nuevaFila = posicionActual.fila;
+      let nuevaColumna = posicionActual.columna;
 
-  if (this.modoBloqueo) {
-    if (event.key === 'ArrowUp' && this.posicionBloqueo.fila > 0) this.posicionBloqueo.fila--;
-    if (event.key === 'ArrowDown' && this.posicionBloqueo.fila < 8) this.posicionBloqueo.fila++;
-    if (event.key === 'ArrowLeft' && this.posicionBloqueo.columna > 0) this.posicionBloqueo.columna--;
-    if (event.key === 'ArrowRight' && this.posicionBloqueo.columna < 8) this.posicionBloqueo.columna++;
-  } else {
-    if (event.key === 'w' && nuevaFila > 0) nuevaFila--;
-    if (event.key === 's' && nuevaFila < 8) nuevaFila++;
-    if (event.key === 'a' && nuevaColumna > 0) nuevaColumna--;
-    if (event.key === 'd' && nuevaColumna < 8) nuevaColumna++;
-    this.moverJugador(nuevaFila, nuevaColumna);
-  }
+      if (this.modoBloqueo) {
+        if (event.key === 'ArrowUp' && this.posicionBloqueo.fila > 0) this.posicionBloqueo.fila--;
+        if (event.key === 'ArrowDown' && this.posicionBloqueo.fila < 8) this.posicionBloqueo.fila++;
+        if (event.key === 'ArrowLeft' && this.posicionBloqueo.columna > 0) this.posicionBloqueo.columna--;
+        if (event.key === 'ArrowRight' && this.posicionBloqueo.columna < 8) this.posicionBloqueo.columna++;
+      } else {
+        if (event.key === 'w' && nuevaFila > 0) nuevaFila--;
+        if (event.key === 's' && nuevaFila < 8) nuevaFila++;
+        if (event.key === 'a' && nuevaColumna > 0) nuevaColumna--;
+        if (event.key === 'd' && nuevaColumna < 8) nuevaColumna++;
+        this.moverJugador(nuevaFila, nuevaColumna);
+      }
 
-  if (event.key === ' ') {
-    this.direccionBloqueo = this.direccionBloqueo === 'horizontal' ? 'vertical' : 'horizontal';
-  }
+      if (event.key === ' ') {
+        this.direccionBloqueo = this.direccionBloqueo === 'horizontal' ? 'vertical' : 'horizontal';
+      }
 
-  if (event.key === 'Enter' && this.modoBloqueo) {
-    this.colocarBloqueo(this.posicionBloqueo.fila, this.posicionBloqueo.columna, this.direccionBloqueo);
-  }
-},
+      if (event.key === 'Enter' && this.modoBloqueo) {
+        this.colocarBloqueo(this.posicionBloqueo.fila, this.posicionBloqueo.columna, this.direccionBloqueo);
+      }
+    },
     colocarBloqueo(fila, columna, direccion) {
       const jugador = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
       if (this.modoBloqueo) {
@@ -132,9 +155,26 @@ export default {
 </script>
 
 <style>
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f0f0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .botones-bloqueo {
   display: flex;
   justify-content: space-around;
+  width: 100%;
+  max-width: 400px;
   margin-top: 20px;
 }
 </style>
