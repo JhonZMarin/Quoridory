@@ -2,6 +2,10 @@
   <div id="app">
     <div class="content">
       <IndicadorTurno :turnoActual="turnoActual" />
+      <div class="info-bloqueos">
+        <p>Jugador 1 Bloqueos Disponibles: {{ 10 - cantidadBloquesJugador('jugador1') }}</p>
+        <p>Jugador 2 Bloqueos Disponibles: {{ 10 - cantidadBloquesJugador('jugador2') }}</p>
+      </div>
       <Tablero 
         :casillas="casillas" 
         :bloqueos="bloqueos" 
@@ -10,8 +14,8 @@
       />
       <MensajeGanador :mostrar="mostrarGanador" :mensaje="mensajeGanador" />
       <div class="botones-bloqueo">
-        <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 1">Bloquear J1</button>
-        <button @click="activarModoBloqueo" :disabled="modoBloqueo || turnoActual !== 2">Bloquear J2</button>
+        <button @click="() => activarModoBloqueo('jugador1')" :disabled="modoBloqueo || turnoActual !== 1">Bloquear J1</button>
+        <button @click="() => activarModoBloqueo('jugador2')" :disabled="modoBloqueo || turnoActual !== 2">Bloquear J2</button>
       </div>
     </div>
   </div>
@@ -55,6 +59,9 @@ export default {
       casillas[0 * 9 + 4].jugadorClase = 'jugador1';
       casillas[8 * 9 + 4].jugadorClase = 'jugador2';
       return casillas;
+    },
+    cantidadBloquesJugador(jugador) {
+      return this.bloqueos.filter(bloqueo => bloqueo.jugadorClase === jugador).length;
     },
     actualizarTurno() {
       this.turnoActual = this.turnoActual === 1 ? 2 : 1;
@@ -118,7 +125,8 @@ export default {
         if (event.key === 'ArrowDown' && this.posicionBloqueo.fila < 8) this.posicionBloqueo.fila++;
         if (event.key === 'ArrowLeft' && this.posicionBloqueo.columna > 0) this.posicionBloqueo.columna--;
         if (event.key === 'ArrowRight' && this.posicionBloqueo.columna < 8) this.posicionBloqueo.columna++;
-      } else {
+      }
+      else {
         if (event.key === 'w' && nuevaFila > 0) nuevaFila--;
         if (event.key === 's' && nuevaFila < 8) nuevaFila++;
         if (event.key === 'a' && nuevaColumna > 0) nuevaColumna--;
@@ -135,15 +143,30 @@ export default {
       }
     },
     colocarBloqueo(fila, columna, direccion) {
+ 
+      const jugadorActual = this.turnoActual === 1 ? 'jugador1' : 'jugador2';
+      const cantidadBloqueosDisponibles = this.bloqueos.filter(bloqueo => bloqueo.jugadorClase === jugadorActual).length;
+      if (cantidadBloqueosDisponibles >= 10) {
+        
+        return;
+      }
+
       if (direccion === 'horizontal' && fila < 8) {
-        this.bloqueos.push({ fila, columna, direccion });
+        this.bloqueos.push({ fila, columna, direccion, jugadorClase: jugadorActual });
       } else if (direccion === 'vertical' && columna < 8) {
-        this.bloqueos.push({ fila, columna, direccion });
+        this.bloqueos.push({ fila, columna, direccion, jugadorClase: jugadorActual });
       }
       this.modoBloqueo = false;
       this.actualizarTurno();
     },
-    activarModoBloqueo() {
+    activarModoBloqueo(jugador) {
+
+      const cantidadBloqueosDisponibles = this.bloqueos.filter(bloqueo => bloqueo.jugadorClase === jugador).length;
+      if (cantidadBloqueosDisponibles >= 10) {
+
+        return;
+      }
+
       this.modoBloqueo = true;
     }
   },
@@ -152,7 +175,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.manejarTecla);
-  }
+  },
 };
 </script>
 
@@ -170,6 +193,10 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.info-bloqueos {
+  margin-bottom: 10px;
 }
 
 .botones-bloqueo {

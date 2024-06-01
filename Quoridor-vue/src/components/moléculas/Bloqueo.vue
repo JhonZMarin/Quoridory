@@ -11,7 +11,7 @@ export default {
   props: {
     fila: Number,
     columna: Number,
-    direccion: String, // 'horizontal' o 'vertical'
+    direccion: String, 
     jugadorClase: String
   },
   methods: {
